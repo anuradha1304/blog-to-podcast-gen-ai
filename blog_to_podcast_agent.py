@@ -10,122 +10,76 @@ import streamlit as st
 # Streamlit Setup
 st.set_page_config(page_title="Blog to Podcast AI", page_icon="🎙️", layout="centered")
 
-# Custom CSS for Professional, Theme-Suitable UI
-custom_css = """
-<style>
-    /* Main container styling */
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-    }
-    
-    /* Header/Title styling */
-    h1 {
-        font-family: 'Inter', sans-serif;
-        font-weight: 800;
-        letter-spacing: -1px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
-        padding-bottom: 10px;
-        margin-bottom: 0px;
-    }
-    
-    /* Subtitle/Text styling */
-    .subtitle {
-        color: #a0aec0;
-        font-size: 1.2rem;
-        text-align: center;
-        margin-bottom: 40px;
-        font-weight: 400;
-    }
+# Custom UI Tweaks (Minimal & Native)
+st.markdown("""
+    <style>
+        /* Center the top padding a bit more */
+        .block-container {
+            padding-top: 2rem;
+            padding-bottom: 3rem;
+            max-width: 800px;
+        }
+        /* Make the audio player look nice */
+        .stAudio {
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        /* Hide sidebar divider */
+        [data-testid="stSidebarNav"] {display: none;}
+    </style>
+""", unsafe_allow_html=True)
 
-    /* Button styling */
-    .stButton>button {
-        width: 100%;
-        border-radius: 8px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        font-weight: 600;
-        border: none;
-        padding: 0.75rem 1rem;
-        transition: all 0.3s ease;
-    }
-    .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(118, 75, 162, 0.4);
-        border: none;
-        color: white;
-    }
-    .stButton>button:disabled {
-        background: #4a5568;
-        color: #a0aec0;
-        transform: none;
-        box-shadow: none;
-    }
-
-    /* Audio player wrapper */
-    .stAudio {
-        margin-top: 20px;
-        margin-bottom: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    /* Card-like container for URL input */
-    .url-container {
-        background-color: #1e212b;
-        padding: 25px;
-        border-radius: 12px;
-        border: 1px solid #2d3748;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
-</style>
-"""
-st.markdown(custom_css, unsafe_allow_html=True)
-
-# Main Header
-st.markdown("<h1>🎙️ Blog to Podcast AI</h1>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>Transform any written blog post into an engaging, high-quality audio podcast in seconds.</div>", unsafe_allow_html=True)
+# Hero Section
+st.markdown("<h1 style='text-align: center; color: #8B5CF6; font-size: 3.5rem; font-weight: 800; margin-bottom: 0; padding-bottom: 0;'>🎙️ Blog to Podcast AI</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #94A3B8; font-size: 1.25rem; font-weight: 400; margin-top: 0.5rem; margin-bottom: 3rem;'>Transform any written blog post into an engaging, high-quality audio podcast in seconds.</p>", unsafe_allow_html=True)
 
 # API Keys (Sidebar)
-st.sidebar.markdown("### ⚙️ Configuration")
-st.sidebar.markdown("Enter your API keys to get started.")
-openai_key = st.sidebar.text_input("OpenAI API Key", type="password", help="Required for text summarization")
-elevenlabs_key = st.sidebar.text_input("ElevenLabs API Key", type="password", help="Required for voice generation")
-firecrawl_key = st.sidebar.text_input("Firecrawl API Key", type="password", help="Required for blog scraping")
+with st.sidebar:
+    st.header("⚙️ Configuration")
+    st.caption("Enter your API keys to unlock all features.")
+    openai_key = st.text_input("OpenAI API Key", type="password", help="Required for summarizing text (GPT-4o)")
+    elevenlabs_key = st.text_input("ElevenLabs API Key", type="password", help="Required for generating lifelike voices")
+    firecrawl_key = st.text_input("Firecrawl API Key", type="password", help="Required for scraping blog content")
+    
+    st.divider()
+    
+    st.subheader("ℹ️ How it works")
+    st.markdown("""
+    <div style='color: #94A3B8; font-size: 0.95rem; line-height: 1.6;'>
+    <b>1. Scraping:</b> Extracts clean content from any blog URL using Firecrawl.<br><br>
+    <b>2. Summarizing:</b> OpenAI's GPT-4o analyzes and crafts an engaging podcast script.<br><br>
+    <b>3. Audio Generation:</b> ElevenLabs converts the script into natural, expressive speech.
+    </div>
+    """, unsafe_allow_html=True)
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("### ℹ️ How it works")
-st.sidebar.info(
-    "1. **Scraping**: Firecrawl extracts the content from the blog URL.\n"
-    "2. **Summarizing**: OpenAI GPT-4o crafts an engaging podcast script.\n"
-    "3. **Audio Gen**: ElevenLabs brings the script to life with natural voices."
-)
+# Main Input Section
+st.markdown("### 🔗 Enter Blog URL")
+url = st.text_input("URL", label_visibility="collapsed", placeholder="e.g. https://example.com/my-awesome-blog-post")
 
-# Blog URL Input Area
-st.markdown("<div class='url-container'>", unsafe_allow_html=True)
-url = st.text_input("🔗 Paste Blog URL:", placeholder="https://example.com/blog-post")
-st.markdown("</div>", unsafe_allow_html=True)
+st.write("") # Spacer
 
-# Generate Button
-st.markdown("<br>", unsafe_allow_html=True)
+# Generate Button Logic
 button_disabled = not all([openai_key, elevenlabs_key, firecrawl_key])
 
 if button_disabled:
-    st.warning("⚠️ Please provide all API keys in the sidebar to enable podcast generation.")
+    st.info("💡 **Almost ready!** Please provide your OpenAI, ElevenLabs, and Firecrawl API keys in the sidebar to continue.", icon="ℹ️")
 
-if st.button("🎙️ Generate Podcast Episode", disabled=button_disabled):
+if st.button("🎙️ Generate Podcast Episode", type="primary", disabled=button_disabled, use_container_width=True):
     if not url.strip():
-        st.error("Please enter a valid blog URL.")
+        st.error("Please enter a valid blog URL to proceed.", icon="🚨")
     else:
-        with st.spinner("🔄 Scraping blog and generating podcast script..."):
-            try:
-                # Set API keys
-                os.environ["OPENAI_API_KEY"] = openai_key
-                os.environ["FIRECRAWL_API_KEY"] = firecrawl_key
+        # Progress UI
+        status_container = st.empty()
+        
+        try:
+            # Set API keys
+            os.environ["OPENAI_API_KEY"] = openai_key
+            os.environ["FIRECRAWL_API_KEY"] = firecrawl_key
+            
+            with status_container.status("🚀 Processing your request...", expanded=True) as status:
+                st.write("🔍 Scraping blog content and analyzing text...")
                 
                 # Create agent for scraping and summarization
                 agent = Agent(
@@ -134,7 +88,7 @@ if st.button("🎙️ Generate Podcast Episode", disabled=button_disabled):
                     tools=[FirecrawlTools()],
                     instructions=[
                         "Scrape the blog URL and create a concise, engaging summary (max 2000 characters) suitable for a podcast.",
-                        "The summary should be conversational, engaging, and capture the main points perfectly for listening."
+                        "The summary should be conversational, engaging, and capture the main points perfectly for listening. Start with a catchy hook."
                     ],
                 )
                 
@@ -143,42 +97,47 @@ if st.button("🎙️ Generate Podcast Episode", disabled=button_disabled):
                 summary = response.content if hasattr(response, 'content') else str(response)
                 
                 if summary:
-                    with st.spinner("🎙️ Generating lifelike audio with ElevenLabs..."):
-                        # Initialize ElevenLabs client and generate audio
-                        client = ElevenLabs(api_key=elevenlabs_key)
-                        
-                        # Generate audio using text_to_speech.convert
-                        audio_generator = client.text_to_speech.convert(
-                            text=summary,
-                            voice_id="JBFqnCBsd6RMkjVDRZzb",
-                            model_id="eleven_multilingual_v2"
-                        )
-                        
-                        # Collect audio chunks if it's a generator
-                        audio_chunks = []
-                        for chunk in audio_generator:
-                            if chunk:
-                                audio_chunks.append(chunk)
-                        audio_bytes = b"".join(audio_chunks)
-                        
-                        # Display audio
-                        st.success("✨ Podcast generated successfully! 🎧")
-                        st.audio(audio_bytes, format="audio/mp3")
-                        
-                        # Download button
-                        st.download_button(
-                            label="💾 Download Podcast (.mp3)",
-                            data=audio_bytes,
-                            file_name="podcast_episode.mp3",
-                            mime="audio/mp3"
-                        )
-                        
-                        # Show summary
-                        with st.expander("📄 View Podcast Script (Summary)"):
-                            st.write(summary)
-                else:
-                    st.error("Failed to generate summary from the blog content.")
+                    st.write("🎙️ Generating lifelike audio with ElevenLabs...")
                     
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
+                    # Initialize ElevenLabs client and generate audio
+                    client = ElevenLabs(api_key=elevenlabs_key)
+                    
+                    # Generate audio using text_to_speech.convert
+                    audio_generator = client.text_to_speech.convert(
+                        text=summary,
+                        voice_id="JBFqnCBsd6RMkjVDRZzb",
+                        model_id="eleven_multilingual_v2"
+                    )
+                    
+                    # Collect audio chunks if it's a generator
+                    audio_chunks = []
+                    for chunk in audio_generator:
+                        if chunk:
+                            audio_chunks.append(chunk)
+                    audio_bytes = b"".join(audio_chunks)
+                    
+                    status.update(label="✨ Podcast generated successfully!", state="complete", expanded=False)
+                    
+            # Display results outside the status spinner
+            st.success("Your episode is ready! 🎧", icon="✅")
+            st.audio(audio_bytes, format="audio/mp3")
+            
+            # Action buttons side-by-side
+            col1, col2 = st.columns(2)
+            with col1:
+                st.download_button(
+                    label="💾 Download Episode (.mp3)",
+                    data=audio_bytes,
+                    file_name="podcast_episode.mp3",
+                    mime="audio/mp3",
+                    use_container_width=True
+                )
+            
+            # Show summary
+            with st.expander("📄 View Podcast Script"):
+                st.write(summary)
+                
+        except Exception as e:
+            status_container.error(f"**An error occurred:** {str(e)}", icon="❌")
+
 
